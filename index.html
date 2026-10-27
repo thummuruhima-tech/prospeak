@@ -1,0 +1,415 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProxiSpeak - Virtual Office</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#0b1020;color:#f8fafc}
+header{background:#11182b;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #293650}
+header h2{color:#a78bfa}
+button{cursor:pointer;border:0;border-radius:7px;padding:11px 15px;background:#8b5cf6;color:white}
+button:hover{background:#7c3aed}
+.layout{display:flex;min-height:90vh}
+aside{width:220px;padding:20px;background:#11182b}
+aside button{width:100%;text-align:left;margin:5px 0}
+main{flex:1;padding:30px;min-width:0}
+.page{display:none}
+.page.active{display:block}
+h1{margin-bottom:12px}
+p{color:#b7c1d6;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:25px 0}
+.card{background:#151e33;padding:22px;border:1px solid #293650;border-radius:12px;min-width:0}
+.card h3{color:#c4b5fd;margin-bottom:12px}
+input,textarea,select{width:100%;padding:12px;margin:8px 0;background:#0b1020;color:white;border:1px solid #35415c;border-radius:7px}
+.item{background:#10192c;border:1px solid #293650;padding:14px;border-radius:8px;margin-top:10px;overflow-wrap:anywhere}
+.item button{margin-top:10px}
+.status{color:#4ade80}
+@media(max-width:750px){
+.layout{display:block}
+aside{width:100%;display:flex;overflow-x:auto;gap:5px}
+aside button{width:auto;white-space:nowrap}
+.grid{grid-template-columns:1fr}
+main{padding:18px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>◈ ProxiSpeak</h2>
+<span id="userLabel">Virtual Office Platform</span>
+</header>
+
+<div class="layout">
+
+<aside>
+<button onclick="showPage('dashboard')">📊 Dashboard</button>
+<button onclick="showPage('office')">🏢 Virtual Office</button>
+<button onclick="showPage('team')">👥 Team</button>
+<button onclick="showPage('chat')">💬 Chat</button>
+<button onclick="showPage('projects')">📁 Projects</button>
+<button onclick="showPage('tasks')">✅ Tasks</button>
+<button onclick="showPage('meetings')">📅 Meetings</button>
+<button onclick="showPage('account')">👤 Account</button>
+</aside>
+
+<main>
+
+<section class="page active" id="dashboard">
+<h1>Welcome to ProxiSpeak 👋</h1>
+<p>Connect, collaborate, and manage your virtual workplace.</p>
+
+<div class="grid">
+<div class="card"><h3>Projects</h3><h2 id="projectCount">0</h2></div>
+<div class="card"><h3>Tasks</h3><h2 id="taskCount">0</h2></div>
+<div class="card"><h3>Meetings</h3><h2 id="meetingCount">0</h2></div>
+</div>
+
+<div class="card">
+<h3>Workspace Overview</h3>
+<p>Use the navigation menu to manage projects, tasks, meetings, and team communication.</p>
+<p id="connectionStatus">Connecting to backend...</p>
+</div>
+</section>
+
+<section class="page" id="office">
+<h1>Virtual Office</h1>
+<p>Select your workspace.</p>
+<div class="grid">
+<div class="card"><h3>Design Room</h3><p>Creative collaboration</p><br><button onclick="joinRoom('Design')">Enter Room</button></div>
+<div class="card"><h3>Development Room</h3><p>Programming workspace</p><br><button onclick="joinRoom('Development')">Enter Room</button></div>
+<div class="card"><h3>Meeting Room</h3><p>Team discussions</p><br><button onclick="joinRoom('Meeting')">Enter Room</button></div>
+</div>
+<p id="roomStatus"></p>
+</section>
+
+<section class="page" id="team">
+<h1>Team Members</h1>
+<div class="grid">
+<div class="card"><h3>Hima Thummuru</h3><p>Frontend Developer</p><p class="status">● Project Member</p></div>
+<div class="card"><h3>Team Member 2</h3><p>Backend Developer</p></div>
+<div class="card"><h3>Team Member 3</h3><p>UI/UX Designer</p></div>
+</div>
+</section>
+
+<section class="page" id="chat">
+<h1>Team Chat</h1>
+<div class="card">
+<p id="chatStatus">Connecting to chat...</p>
+<div id="messages" style="height:280px;overflow-y:auto;margin:15px 0"></div>
+<form id="chatForm">
+<input id="chatInput" placeholder="Write a message..." maxlength="500" required>
+<button type="submit">Send Message</button>
+</form>
+</div>
+</section>
+
+<section class="page" id="projects">
+<h1>Projects</h1>
+<div class="grid">
+<div class="card">
+<h3>Create Project</h3>
+<form id="projectForm">
+<input id="projectName" placeholder="Project name" maxlength="100" required>
+<textarea id="projectDescription" placeholder="Description"></textarea>
+<button type="submit">Create Project</button>
+</form>
+</div>
+<div class="card">
+<h3>Project List</h3>
+<div id="projectsList"></div>
+</div>
+</div>
+</section>
+
+<section class="page" id="tasks">
+<h1>Task Manager</h1>
+<div class="grid">
+<div class="card">
+<h3>Create Task</h3>
+<form id="taskForm">
+<input id="taskName" placeholder="Task name" maxlength="100" required>
+<select id="taskPriority">
+<option>Low</option>
+<option>Medium</option>
+<option>High</option>
+</select>
+<button type="submit">Create Task</button>
+</form>
+</div>
+<div class="card">
+<h3>Task List</h3>
+<div id="tasksList"></div>
+</div>
+</div>
+</section>
+
+<section class="page" id="meetings">
+<h1>Meetings</h1>
+<div class="grid">
+<div class="card">
+<h3>Schedule Meeting</h3>
+<form id="meetingForm">
+<input id="meetingTitle" placeholder="Meeting title" maxlength="100" required>
+<input id="meetingDate" type="datetime-local" required>
+<button type="submit">Schedule</button>
+</form>
+</div>
+<div class="card">
+<h3>Meeting List</h3>
+<div id="meetingsList"></div>
+</div>
+</div>
+</section>
+
+<section class="page" id="account">
+<h1>Account</h1>
+<div class="card">
+<h3>Register or Login</h3>
+<p>Create an account or log in to access your workspace.</p>
+<form id="registerForm">
+<input id="name" placeholder="Full name" maxlength="100" required>
+<input id="email" type="email" placeholder="Email address" required>
+<input id="password" type="password" minlength="8" placeholder="Password (minimum 8 characters)" required>
+<button type="submit">Register</button>
+</form>
+<hr style="border-color:#293650;margin:20px 0">
+<form id="loginForm">
+<input id="loginEmail" type="email" placeholder="Email address" required>
+<input id="loginPassword" type="password" placeholder="Password" required>
+<button type="submit">Login</button>
+</form>
+<p id="accountMessage"></p>
+<button onclick="logout()" style="margin-top:15px">Logout</button>
+</div>
+</section>
+
+</main>
+</div>
+
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script>
+/*
+  Local development:
+  Backend URL is http://localhost:5000.
+  For deployment, replace this with your HTTPS backend URL.
+*/
+const API = "http://localhost:5000";
+
+let token = localStorage.getItem("ps_token") || "";
+let socket = null;
+let currentRoom = "general";
+
+function showPage(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+}
+
+async function request(path, options={}){
+ const headers={"Content-Type":"application/json",...(options.headers||{})};
+ if(token) headers.Authorization="Bearer "+token;
+
+ const response=await fetch(API+path,{...options,headers});
+ const data=await response.json().catch(()=>({message:"Invalid server response"}));
+
+ if(!response.ok) throw new Error(data.message||"Request failed");
+ return data;
+}
+
+function showAccountMessage(message){
+ document.getElementById("accountMessage").textContent=message;
+}
+
+async function checkBackend(){
+ try{
+  const data=await request("/api/health");
+  document.getElementById("connectionStatus").textContent="Backend connected: "+data.status;
+  document.getElementById("connectionStatus").className="status";
+ }catch{
+  document.getElementById("connectionStatus").textContent="Backend unavailable. Start the backend server.";
+ }
+}
+
+function escapeText(value){
+ return String(value).replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+async function loadData(){
+ if(!token) return;
+ try{
+  const [projects,tasks,meetings]=await Promise.all([
+   request("/api/projects"),
+   request("/api/tasks"),
+   request("/api/meetings")
+  ]);
+
+  document.getElementById("projectCount").textContent=projects.length;
+  document.getElementById("taskCount").textContent=tasks.length;
+  document.getElementById("meetingCount").textContent=meetings.length;
+
+  document.getElementById("projectsList").innerHTML=projects.map(p=>
+   `<div class="item"><strong>${escapeText(p.name)}</strong><p>${escapeText(p.description||"")}</p></div>`
+  ).join("")||"<p>No projects yet.</p>";
+
+  document.getElementById("tasksList").innerHTML=tasks.map(t=>
+   `<div class="item"><strong>${escapeText(t.name)}</strong><p>Priority: ${escapeText(t.priority)} | ${escapeText(t.status)}</p></div>`
+  ).join("")||"<p>No tasks yet.</p>";
+
+  document.getElementById("meetingsList").innerHTML=meetings.map(m=>
+   `<div class="item"><strong>${escapeText(m.title)}</strong><p>${escapeText(m.date)}</p></div>`
+  ).join("")||"<p>No meetings yet.</p>";
+ }catch(error){
+  showAccountMessage(error.message+" — please log in again if your session expired.");
+ }
+}
+
+document.getElementById("registerForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ try{
+  const data=await request("/api/auth/register",{
+   method:"POST",
+   body:JSON.stringify({
+    name:document.getElementById("name").value.trim(),
+    email:document.getElementById("email").value.trim(),
+    password:document.getElementById("password").value
+   })
+  });
+  showAccountMessage(data.message+" You can now log in.");
+ }catch(error){showAccountMessage(error.message);}
+});
+
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ try{
+  const data=await request("/api/auth/login",{
+   method:"POST",
+   body:JSON.stringify({
+    email:document.getElementById("loginEmail").value.trim(),
+    password:document.getElementById("loginPassword").value
+   })
+  });
+
+  token=data.token;
+  localStorage.setItem("ps_token",token);
+  document.getElementById("userLabel").textContent=data.user.name;
+  showAccountMessage("Login successful.");
+  connectChat();
+  await loadData();
+  showPage("dashboard");
+ }catch(error){showAccountMessage(error.message);}
+});
+
+function logout(){
+ token="";
+ localStorage.removeItem("ps_token");
+ if(socket){socket.disconnect();socket=null;}
+ document.getElementById("userLabel").textContent="Virtual Office Platform";
+ showAccountMessage("Logged out.");
+}
+
+document.getElementById("projectForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ try{
+  await request("/api/projects",{
+   method:"POST",
+   body:JSON.stringify({
+    name:document.getElementById("projectName").value.trim(),
+    description:document.getElementById("projectDescription").value.trim()
+   })
+  });
+  e.target.reset();
+  await loadData();
+ }catch(error){alert(error.message);}
+});
+
+document.getElementById("taskForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ try{
+  await request("/api/tasks",{
+   method:"POST",
+   body:JSON.stringify({
+    name:document.getElementById("taskName").value.trim(),
+    priority:document.getElementById("taskPriority").value
+   })
+  });
+  e.target.reset();
+  await loadData();
+ }catch(error){alert(error.message);}
+});
+
+document.getElementById("meetingForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ try{
+  await request("/api/meetings",{
+   method:"POST",
+   body:JSON.stringify({
+    title:document.getElementById("meetingTitle").value.trim(),
+    date:document.getElementById("meetingDate").value
+   })
+  });
+  e.target.reset();
+  await loadData();
+ }catch(error){alert(error.message);}
+});
+
+function connectChat(){
+ if(!token||typeof io==="undefined") return;
+ if(socket) socket.disconnect();
+
+ socket=io(API,{auth:{token}});
+ socket.on("connect",()=>{
+  document.getElementById("chatStatus").textContent="Connected to chat server";
+  socket.emit("joinRoom",currentRoom);
+ });
+ socket.on("connect_error",()=>{
+  document.getElementById("chatStatus").textContent="Chat connection failed";
+ });
+ socket.on("chatMessage",data=>{
+  const div=document.createElement("div");
+  div.className="item";
+  div.textContent=data.name+": "+data.message;
+  document.getElementById("messages").appendChild(div);
+ });
+}
+
+function joinRoom(room){
+ currentRoom=room.toLowerCase();
+ document.getElementById("roomStatus").textContent="Selected room: "+room;
+ if(socket&&socket.connected) socket.emit("joinRoom",currentRoom);
+}
+
+document.getElementById("chatForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ if(!socket||!socket.connected){
+  alert("Please log in and connect to the chat server first.");
+  return;
+ }
+ const input=document.getElementById("chatInput");
+ socket.emit("chatMessage",{room:currentRoom,message:input.value.trim()});
+ input.value="";
+});
+
+checkBackend();
+
+if(token){
+ request("/api/profile").then(data=>{
+  document.getElementById("userLabel").textContent=data.user.name;
+  connectChat();
+  loadData();
+ }).catch(()=>{
+  token="";
+  localStorage.removeItem("ps_token");
+ });
+}
+</script>
+
+</body>
+</html>
+```
